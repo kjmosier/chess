@@ -15,6 +15,8 @@ module Chess
 =end
 
   class ChessGame
+    include Pieces
+
       attr_accessor :board
 
       def initialize
@@ -27,7 +29,6 @@ module Chess
        set_board
        display_board
        prompt
-       p @board
      end
 
 
@@ -36,46 +37,53 @@ module Chess
        puts "Please select option: \n m: move \n s: save \n q: quit"
        choice = gets.chomp
        case choice
-       when"m"
+       when "m"
          move
        else
          return true
        end
      end
 
+
      def move
-       puts "To enter space type column then row. e.g. \"a1\""
+       #puts "To enter space type column then row. e.g. \"a1\""
        puts "Move from: "
-       move_from = get_move
-       validate_move_from(move_from)
+       move_from = fetch_move_from
+       p move_from
+       puts "Move To:"
+       #move_to = validate_move_to(move_from, get_move, @board)
+       validate_move_to(move_from, get_move, @board)
      end
 
-     def validate_move_from(move_from)
-             #  -97  to get column  'a' = 97 ascii
+
+
+
+
+
+     def fetch_move_from
+       move_from = get_move
+       #  -97  to get column  'a' = 97 ascii
        y = move_from[0].ord - 97
        x = move_from[1].to_i - 1
-       p @board[x][y]
-       piece = @board[x][y]
-       p piece.ord
-      #  if @white && @board[x][y][-1] =~ /[[:digit:]]/
-      #    puts "white!"
-      #  else
-      #    puts "not white"
-      #  end
+       #validate White's turn and white piece chosen or Black's turn and black piece chosen
+       #using .ord to see if piece is in range of white or black pieces see chart above.
+       until (@white && (9812..9817).include?(@board[x][y].ord)) || (!@white && (9818..9823).include?(@board[x][y].ord))
+          puts "Invalid selection!"
+          puts "Try a different square:"
+          move_from = get_move
+          y = move_from[0].ord - 97
+          x = move_from[1].to_i - 1
+       end
+       return [x , y]
      end
 
      def get_move
-       choice= gets.chomp
-       if choice.size != 2
-         puts "To enter space type column then row. e.g. \"a1\""
-         get_move
-         return
-       end
+       choice = "XXX"
        scanned = choice.scan(/[a-g][1-8]/).join
-       if scanned.size != 2
-         puts "To enter space type column[a-g] then row[1-8]. e.g. \"a1\""
-         get_move
-         return
+       until choice.size == 2 && scanned.size == 2
+         puts "To enter space type column then row. e.g. \"a1\""
+         choice = gets.chomp
+         scanned = choice.scan(/[a-g][1-8]/).join
        end
        scanned
      end

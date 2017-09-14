@@ -12,13 +12,76 @@ module Pieces
     White King   =   "\u2654"  = 9812    Black King   =  "\u265a"  = 9818
 =end
 
-     #this will be a switch and will return from seperate functions
+     #this will be a switch and will return move_to if it is valid
      def validate_move_to(move_from, move_to, board)
-       valid_move = false
-       puts "here"
-
-
+       puts "move from: #{move_from}"
+       puts "move to: #{move_to}"
+       move_valid = false
+       #selects chess piece
+       case board[move_from[0]][move_from[1]].ord
+       when 9817
+         move_valid = pawn_move(move_from, move_to, board)
+       when 9814
+         puts "moving a white rook"
+       when 9816
+         puts "moving a white knight"
+       when 9815
+         puts "moving a white bishop"
+       when 9813
+         puts "moving a white queen"
+       when 9812
+         puts "moving a white king"
+       else
+         puts "pieces move not added yet"
+       end
+       move_valid
      end
+
+
+    def pawn_move(move_from, move_to, board)
+      puts "moving a white pawn"
+      puts "move_from: #{move_from}"
+      puts "move_to: #{move_to}"
+      #Cases where move is not valid
+      #check to see if legal, diagonal take occurs
+      if move_to[0] == (move_from[0] + 1) && (move_from[1] == (move_to[1]+1) || move_from[1] == (move_to[1]-1))
+        return true if is_take?(move_from, move_to, board)
+      end
+      #not the same column
+      return false if move_to[1] != move_from[1]
+      #more than 1 space forward  except from row 2
+      return false if (move_to[0] != (move_from[0] + 1)) && move_from[0] != 1
+      #move from row 2 is greater than 2
+      return false if move_to[0] > move_from[0] + 2
+      #a piece in its straight piece_in_path_straight
+      return false if piece_in_path_straight?(move_from, move_to, board)
+      #if a players piece is in the final position
+      true
+    end
+
+
+    def is_take?
+    end
+
+
+
+    def terminus_open?
+      return true
+    end
+
+    def piece_in_path_straight?(move_from, move_to, board)
+      col = move_from[1]
+      #spot after or before piece
+      start = move_from[0] < move_to[0] ? move_from[0]+1 : move_to[0]+1
+      stop = move_from[0] < move_to[0] ? move_to[0]-1 : move_from[0]-1
+      start.upto(stop) do |l|
+        puts "cell in path:"
+        p board[l][col]
+        return true if board[l][col] != "."
+      end
+      false
+    end
+
 
 =begin
 

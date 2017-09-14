@@ -20,15 +20,24 @@ module Chess
       attr_accessor :board
 
       def initialize
+        #@board is set [row][col]
         @board = set_board
-        @pieces = create_pieces
+        #track whose turn: white or !white (black)
         @white = true
+        @captured_white
+        @captured_black
+        #is game still active?
+        @game = true
      end
+
+
 
      def play
        set_board
        display_board
-       prompt
+       until !@game
+         prompt
+       end
      end
 
 
@@ -40,42 +49,46 @@ module Chess
        when "m"
          move
        else
-         return true
+         @game = false
        end
      end
 
 
      def move
-       #puts "To enter space type column then row. e.g. \"a1\""
-       puts "Move from: "
-       move_from = fetch_move_from
-       p move_from
-       puts "Move To:"
-       #move_to = validate_move_to(move_from, get_move, @board)
-       validate_move_to(move_from, get_move, @board)
+       valid = false
+       until valid
+         puts "Move from: "
+         move_from = validate_move_from
+         puts "Move To:"
+         move_to = get_move
+         valid = validate_move_to(move_from, move_to, @board)
+         puts "Invalid Move" if !valid
+       end
+       register_move
+       #turns are disabled until black moves are built out !!!!!!!
+       #@white = !@white
+     end
+
+
+     def register_move
+       puts "completed move"
      end
 
 
 
-
-
-
-     def fetch_move_from
+     def validate_move_from
        move_from = get_move
-       #  -97  to get column  'a' = 97 ascii
-       y = move_from[0].ord - 97
-       x = move_from[1].to_i - 1
        #validate White's turn and white piece chosen or Black's turn and black piece chosen
        #using .ord to see if piece is in range of white or black pieces see chart above.
-       until (@white && (9812..9817).include?(@board[x][y].ord)) || (!@white && (9818..9823).include?(@board[x][y].ord))
+       until (@white && (9812..9817).include?(@board[move_from[0]][move_from[1]].ord)) || (!@white && (9818..9823).include?(@board[move_from[0]][move_from[1]].ord))
           puts "Invalid selection!"
           puts "Try a different square:"
           move_from = get_move
-          y = move_from[0].ord - 97
-          x = move_from[1].to_i - 1
        end
-       return [x , y]
+       return move_from
      end
+
+
 
      def get_move
        choice = "XXX"
@@ -85,9 +98,17 @@ module Chess
          choice = gets.chomp
          scanned = choice.scan(/[a-g][1-8]/).join
        end
-       scanned
+       #convert to coords on @board array
+       #  -97  to get column  'a' = 97 ascii
+       # @board format is [row][col]
+       col = scanned[0].ord - 97
+       row = scanned[1].to_i - 1
+       return [row , col]
      end
 
+
+
+      #Sets the board as an array of 8 rows with 8 columns
       def set_board
         arr = []
         arr << ["\u2656","\u2658","\u2657","\u2654","\u2655","\u2657","\u2658","\u2656"]
@@ -102,7 +123,7 @@ module Chess
 
 
 
-
+      #prints board uses .'s  to represent empty squares.
       def display_board
          puts "      " + ("_" * 47)
          8.downto(1) do |l|
@@ -110,30 +131,12 @@ module Chess
             puts "  #{l}  |  " + @board[l-1].join("  |  ") + "  |"
             puts "     " +("|_____" * 8 ) + "|"
          end
-         puts (" " * 8) + ('a'..'g').to_a.join("      ")
+         puts (" " * 8) + ('a'..'h').to_a.join("     ")
       end
 
-     def create_pieces
-     end
 
   end
 end
-
-#Uses multi dimensional array to keep track of squares but this is extra baggage... increases complexity more than improves functionality
- #  def set_board
- #      arr = []
- #      0.upto(7) do |i|
- #          col = 'a'
- #          row = []
- #          0.upto(7) do |_j|
- #              row << ["#{col}#{i + 1}", "#{i}"]
- #              col.next!
- #          end
- #          arr << row
- #      end
- #      arr
- #   end
-
 
 game = Chess::ChessGame.new()
 game.play

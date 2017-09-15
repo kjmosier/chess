@@ -15,7 +15,7 @@ module Chess
 =end
 
   class ChessGame
-    include Pieces
+    include ChessPieceMoves
 
       attr_accessor :board
 
@@ -62,7 +62,7 @@ module Chess
          puts "Move To:"
          move_to = get_move
          valid = validate_move_to(move_from, move_to, @board)
-         puts "Invalid Move" if !valid
+         puts "Invalid move for #{@board[move_from[0]][move_from[1]]}" if !valid
        end
        register_move
        #turns are disabled until black moves are built out !!!!!!!
@@ -118,6 +118,8 @@ module Chess
         end
         arr << ("\u265f "* 8).split()
         arr << ["\u265c","\u265e","\u265d","\u265b","\u265a","\u265d","\u265e","\u265c"]
+        #test case
+        arr[2][1] = "\u265f"
         arr
      end
 

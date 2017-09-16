@@ -1,135 +1,207 @@
 module ChessPieceMoves
+    #     Unicode for chess pieces:
+    #
+    #     Piece              UTF8      Ord     Piece              UTF8      Ord
+    #     White Pawn   =   "\u2659"  = 9817    Black Pawn   =  "\u265f"  = 9823
+    #     White Rook   =   "\u2656"  = 9814    Black Rook   =  "\u265c"  = 9820
+    #     White Knight =   "\u2658"  = 9816    Black Knight =  "\u265e"  = 9822
+    #     White Bishop =   "\u2657"  = 9815    Black Bishop =  "\u265d"  = 9821
+    #     White Queen  =   "\u2655"  = 9813    Black Queeen =  "\u265b"  = 9819
+    #     White King   =   "\u2654"  = 9812    Black King   =  "\u265a"  = 9818
 
-=begin
-    Unicode for chess pieces:
+    # this will be a switch and will return move_to if it is valid
+    def validate_move_to(move_from, move_to)
+        #automatically invalid if own piece at terminus --covers selecting same square --exception  Castling
+        if (is_white?(move_from) && is_white?(move_to)) || (is_black?(move_from) && is_black?(move_to))
+          puts "cannot move onto own piece!"
+          return false unless can_castle?(move_from, move_to)
+        end
+        # selects chess piece
+        case ord_at(move_from)
+        when 9817
+            return white_pawn_move(move_from, move_to)
+        when 9823
+            return black_pawn_move(move_from, move_to)
+        when 9814, 9820
+            return rook_move(move_from, move_to)
+        when 9816, 9822
+            return knight_move(move_from, move_to)
+        when 9815, 9821
+           return bishop_move(move_from, move_to)
+        when 9813
+            puts 'moving a white queen'
+        when 9812
+            puts 'moving a white king'
+        else
+            puts 'pieces move not added yet'
+        end
 
-    Piece              UTF8      Ord     Piece              UTF8      Ord
-    White Pawn   =   "\u2659"  = 9817    Black Pawn   =  "\u265f"  = 9823
-    White Rook   =   "\u2656"  = 9814    Black Rook   =  "\u265c"  = 9820
-    White Knight =   "\u2658"  = 9816    Black Knight =  "\u265e"  = 9822
-    White Bishop =   "\u2657"  = 9815    Black Bishop =  "\u265d"  = 9821
-    White Queen  =   "\u2655"  = 9813    Black Queeen =  "\u265b"  = 9819
-    White King   =   "\u2654"  = 9812    Black King   =  "\u265a"  = 9818
-=end
-
-     #this will be a switch and will return move_to if it is valid
-     def validate_move_to(move_from, move_to, board)
-       move_valid = false
-       #selects chess piece
-       case board[move_from[0]][move_from[1]].ord
-       when 9817
-         move_valid = white_pawn_move(move_from, move_to, board)
-       when 9823
-         move_valid = black_pawn_move(move_from, move_to, board)
-       when 9814
-         puts "moving a white rook"
-       when 9816
-         puts "moving a white knight"
-       when 9815
-         puts "moving a white bishop"
-       when 9813
-         puts "moving a white queen"
-       when 9812
-         puts "moving a white king"
-       else
-         puts "pieces move not added yet"
-       end
-       move_valid
-     end
-
-
-    def white_pawn_move(move_from, move_to, board)
-      puts "moving a white pawn"
-      puts "move_from: #{move_from}"
-      puts "move_to: #{move_to}"
-      #Cases where move is not valid
-      #check to see if legal, diagonal take occurs
-      puts "diagonal"
-      if move_to[0] == (move_from[0] + 1) && (move_from[1] == (move_to[1]+1) || move_from[1] == (move_to[1]-1))
-        return is_take?(move_from, move_to, board)
-      end
-      #not the same column
-      puts "not same column"
-      return false if move_to[1] != move_from[1]
-      #more than 1 space forward  except from row 2
-      puts "more than 1 except from 1"
-      return false if (move_to[0] != (move_from[0] + 1)) && move_from[0] != 1
-      #move from row 2 is greater than 2
-      puts "greater than 2"
-      return false if move_to[0] > move_from[0] + 2
-      #a piece in its straight piece_in_path_straight
-      puts "piece in path"
-      return false if piece_in_path_straight?(move_from, move_to, board)
-      true
     end
 
-    def black_pawn_move(move_from, move_to, board)
-      puts "moving a black pawn"
-      puts "move_from: #{move_from}"
-      puts "move_to: #{move_to}"
-      #Cases where move is not valid
-      #check to see if legal, diagonal take occurs
-      if move_to[0] == (move_from[0] - 1) && (move_from[1] == (move_to[1]+1) || move_from[1] == (move_to[1]-1))
-        return is_take?(move_from, move_to, board)
+    def bishop_move(move_from, move_to)
+      #not a diagonal move
+      if (move_from[0] - move_to[0]).abs != (move_from[1] - move_to[1]).abs
+        return false
       end
-      #not the same column
-      return false if move_to[1] != move_from[1]
-      #more than 1 space forward  except from row 2
-      return false if (move_to[0] != (move_from[0] - 1)) && move_from[0] != 7
-      #move from row 2 is greater than 2
-      return false if move_to[0] < move_from[0] - 2
-      #a piece in its straight piece_in_path_straight
-      return false if piece_in_path_straight?(move_from, move_to, board)
-      true
+      #piece in path diagonal
+      !piece_in_path_diagonal?(move_from, move_to)
+    end
+
+    def knight_move(move_from, move_to)
+      #move is only valid if it is plus 2 and over 1 and not own piece at terminus
+      if (move_from[0] - move_to[0]).abs == 2 && (move_from[1] - move_to[1]).abs == 1
+        return true
+      elsif (move_from[0] - move_to[0]).abs == 1 && (move_from[1] - move_to[1]).abs == 2
+        return true
+      else
+        return false
+      end
+    end
+
+    def can_castle?(move_from, move_to)
+      return false
     end
 
 
-    def is_take?(move_from, move_to, board)
-      puts "checking is take?"
-      white_pieces = (9812..9817).to_a
-      black_pieces = (9818..9823).to_a
-      if white_pieces.include?(board[move_from[0]][move_from[1]].ord)
-        return black_pieces.include?(board[move_to[0]][move_to[1]].ord)
-      end
-      if black_pieces.include?(board[move_from[0]][move_from[1]].ord)
-        return white_pieces.include?(board[move_to[0]][move_to[1]].ord)
+    def rook_move(move_from, move_to)
+        puts 'moving a rook'
+        #cases where move is not valid
+        #diagonal
+        return false if move_to[0] != move_from[0] && move_to[1] != move_from[1]
+        # a piece in its path piece_in_path_straight
+        return false if piece_in_path_straight?(move_from, move_to)
+        true
+    end
+
+    def white_pawn_move(move_from, move_to)
+        # Cases where move is not valid
+        # check to see if legal, diagonal take occurs
+        if move_to[0] == (move_from[0] + 1) && (move_from[1] == (move_to[1] + 1) || move_from[1] == (move_to[1] - 1))
+            return is_take?(move_from, move_to)
+        end
+        # not the same column
+        return false if move_to[1] != move_from[1]
+        # if blocked by piece
+        return false if is_white?(move_to) || is_black?(move_to)
+        # more than 1 space forward  except from row 2
+        return false if (move_to[0] != (move_from[0] + 1)) && move_from[0] != 1
+        # move from row 2 is greater than 2
+        return false if move_to[0] > move_from[0] + 2
+        # a piece in its straight piece_in_path_straight
+        return false if piece_in_path_straight?(move_from, move_to)
+        true
+    end
+
+    def black_pawn_move(move_from, move_to)
+        # Cases where move is not valid
+        # check to see if legal, diagonal take occurs
+        if move_to[0] == (move_from[0] - 1) && (move_from[1] == (move_to[1] + 1) || move_from[1] == (move_to[1] - 1))
+            return is_take?(move_from, move_to)
+        end
+        # not the same column
+        return false if move_to[1] != move_from[1]
+        # if blocked by piece
+        return false if is_white?(move_to) || is_black?(move_to)
+        # more than 1 space forward  except from row 2
+        return false if (move_to[0] != (move_from[0] - 1)) && move_from[0] != 6
+        # move from row 2 is greater than 2
+        return false if move_to[0] < move_from[0] - 2
+        # a piece in its straight piece_in_path_straight
+        return false if piece_in_path_straight?(move_from, move_to)
+        true
+    end
+
+    def is_take?(move_from, move_to)
+        puts 'checking is take?'
+        return is_black?(move_to) if is_white?(move_from)
+        return is_white?(move_to) if is_black?(move_from)
+        false
+    end
+
+    def piece_in_path_diagonal?(move_from, move_to)
+      #sticking to matrix format where row axis is first element
+      row = move_from[0].dup + 1
+      col = move_from[1].dup + 1
+      until row == move_to[0] - 1
+        puts 'cell in path:'
+        p @board[row][col]
+        return true if @board[row][col] != '.'
+        row += 1
+        col += 1
       end
       false
     end
 
 
-
-    def terminus_open?
-      return true
+    def piece_in_path_straight?(move_from, move_to)
+        puts "move_from: #{move_from}    move_to: #{move_to}"
+        if move_from[1] == move_to[1]
+          col= move_from[1]
+          # spot after or before piece
+          start = move_from[0] < move_to[0] ? move_from[0] + 1 : move_to[0] + 1
+          stop = move_from[0] < move_to[0] ? move_to[0] - 1 : move_from[0] - 1
+          start.upto(stop) do |l|
+             puts 'cell in path:'
+             p @board[l][col]
+            return true if @board[l][col] != '.'
+          end
+         else
+           row = move_from[0]
+           # spot after or before piece
+           start = move_from[1] < move_to[1] ? move_from[1] + 1 : move_to[1] + 1
+           stop = move_from[1] < move_to[1] ? move_to[1] - 1 : move_from[1] - 1
+           start.upto(stop) do |l|
+              puts 'cell in path:'
+              p @board[row][l]
+              return true if @board[row][l] != '.'
+            end
+         end
+         false
     end
 
-    def piece_in_path_straight?(move_from, move_to, board)
-      col = move_from[1]
-      #spot after or before piece
-      start = move_from[0] < move_to[0] ? move_from[0]+1 : move_to[0]+1
-      stop = move_from[0] < move_to[0] ? move_to[0]-1 : move_from[0]-1
-      start.upto(stop) do |l|
-        puts "cell in path:"
-        p board[l][col]
-        return true if board[l][col] != "."
-      end
-      false
+    # using .ord to see if piece is in range of white or black pieces see chart above.
+    def is_white?(sqr)
+        (9812..9817).cover?(@board[sqr[0]][sqr[1]].ord)
     end
 
+    def is_black?(sqr)
+        (9818..9823).cover?(@board[sqr[0]][sqr[1]].ord)
+    end
 
-=begin
+    def piece_at(sqr)
+        @board[sqr[0]][sqr[1]]
+    end
 
-strategy
-rook legal moves(move_from,move_to, board)
-   asses possible moves
-   see if move_to is part of set_board
-   return true or false
+    def ord_at(sqr)
+        @board[sqr[0]][sqr[1]].ord
+    end
 
-=end
+    def validate_move_from
+        move_from = get_move
+        # validate White's turn and white piece chosen or Black's turn and black piece chosen
+        until (@white && is_white?(move_from)) || (!@white && is_black?(move_from))
+            puts 'Invalid selection!'
+            puts 'Try a different square:'
+            move_from = get_move
+        end
+        move_from
+    end
 
-
-
-
-
-
+    def get_move
+        choice = 'XXX'
+        scanned = choice.scan(/[a-h][1-8]/).join
+        until choice.size == 2 && scanned.size == 2
+            # puts "To enter space type column then row. e.g. \"a1\""
+            choice = gets.chomp
+            # kill switch for testing
+            exit(0) if choice == 'q'
+            scanned = choice.scan(/[a-h][1-8]/).join
+        end
+        # convert to coords on @board array
+        #  -97  to get column  'a' = 97 ascii
+        # @board format is [row][col]
+        col = scanned[0].ord - 97
+        row = scanned[1].to_i - 1
+        [row, col]
+    end
 end

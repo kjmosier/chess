@@ -14,6 +14,14 @@ module Chess
   White King   =   "\u2654"  = 9812    Black King   =  "\u265a"  = 9818
 =end
 
+
+
+# SEE NOTES AT BOTTOM FOR WHERE TO PICK UP!!!!!!!!!!!
+# SEE NOTES AT BOTTOM FOR WHERE TO PICK UP!!!!!!!!!!!
+# SEE NOTES AT BOTTOM FOR WHERE TO PICK UP!!!!!!!!!!!
+# SEE NOTES AT BOTTOM FOR WHERE TO PICK UP!!!!!!!!!!!
+
+
   class ChessGame
     include ChessPieceMoves
 
@@ -24,19 +32,24 @@ module Chess
         @board = set_board
         #track whose turn: white or !white (black)
         @white = true
-        @captured_white
-        @captured_black
+        @captured_white = []
+        @captured_black = []
         #is game still active?
         @game = true
+        @black_can_castle_left = true
+        @white_can_castle_right = true
      end
 
 
 
      def play
        set_board
-       display_board
        until !@game
-         prompt
+         display_board
+         puts "#{whose_turn} turn."
+         #disabled for testing
+         #prompt
+         move
        end
      end
 
@@ -54,6 +67,7 @@ module Chess
      end
 
 
+
      def move
        valid = false
        until valid
@@ -61,51 +75,21 @@ module Chess
          move_from = validate_move_from
          puts "Move To:"
          move_to = get_move
-         valid = validate_move_to(move_from, move_to, @board)
+         valid = validate_move_to(move_from, move_to)
          puts "Invalid move for #{@board[move_from[0]][move_from[1]]}" if !valid
        end
-       register_move
-       #turns are disabled until black moves are built out !!!!!!!
-       #@white = !@white
+       register_move(move_from, move_to)
+       @white = !@white
      end
 
-
-     def register_move
-       puts "completed move"
-     end
-
-
-
-     def validate_move_from
-       move_from = get_move
-       #validate White's turn and white piece chosen or Black's turn and black piece chosen
-       #using .ord to see if piece is in range of white or black pieces see chart above.
-       until (@white && (9812..9817).include?(@board[move_from[0]][move_from[1]].ord)) || (!@white && (9818..9823).include?(@board[move_from[0]][move_from[1]].ord))
-          puts "Invalid selection!"
-          puts "Try a different square:"
-          move_from = get_move
+     def register_move(move_from, move_to)
+       puts "completing move"
+       if is_white?(move_to) || is_black?(move_to)
+         is_black?(move_to) ? @captured_white << piece_at(move_to) : @captured_black << piece_at(move_to)
        end
-       return move_from
+       @board[move_to[0]][move_to[1]] = piece_at(move_from)
+       @board[move_from[0]][move_from[1]] = "."
      end
-
-
-
-     def get_move
-       choice = "XXX"
-       scanned = choice.scan(/[a-g][1-8]/).join
-       until choice.size == 2 && scanned.size == 2
-         puts "To enter space type column then row. e.g. \"a1\""
-         choice = gets.chomp
-         scanned = choice.scan(/[a-g][1-8]/).join
-       end
-       #convert to coords on @board array
-       #  -97  to get column  'a' = 97 ascii
-       # @board format is [row][col]
-       col = scanned[0].ord - 97
-       row = scanned[1].to_i - 1
-       return [row , col]
-     end
-
 
 
       #Sets the board as an array of 8 rows with 8 columns
@@ -119,7 +103,7 @@ module Chess
         arr << ("\u265f "* 8).split()
         arr << ["\u265c","\u265e","\u265d","\u265b","\u265a","\u265d","\u265e","\u265c"]
         #test case
-        arr[2][1] = "\u265f"
+        arr[2][1] = "\u2657"
         arr
      end
 
@@ -136,6 +120,10 @@ module Chess
          puts (" " * 8) + ('a'..'h').to_a.join("     ")
       end
 
+      def whose_turn
+        @white ? "White's" : "Black's"
+      end
+
 
   end
 end
@@ -146,16 +134,40 @@ game.play
 
 
 =begin
+    9/16 follow up notes...
+    building out bishop move need to accomodate for all four directions it can travel in piece_in_path_diagonal
+    then build Queen
+    then build king
+    then make move into check validation
+
+
+    9/15 follow up notes...   Pawn moves are completely built out.  next will be rook.u
+
+    Things to do.   if take is the king game == over  change in register_move
+    Build out piece moves... one by one  5 more total.
+
+    tricky add-ons:
+        castling
+        determine if move will put you in check... invalid.
+            will build this out by running through each of opponents pieces and see if they can land on king
+
+    save board
+    load board
+    that's it unless I want to build ai but would rather just start in on my web project...
+
+
+
+
 
    1. moves
-      a. prompt move
+      a. prompt move  done
       b. execute move
               b1. is valid
                   b11. by piece
       c. see if piece is taken
 
-   2. player moves
-   3. determine take
+   2. player moves    done
+   3. determine take   done
    3. save board
    4. load board
    5 ai

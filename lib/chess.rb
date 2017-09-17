@@ -103,7 +103,7 @@ module Chess
         arr << ("\u265f "* 8).split()
         arr << ["\u265c","\u265e","\u265d","\u265b","\u265a","\u265d","\u265e","\u265c"]
         #test case
-        arr[2][1] = "\u2657"
+        arr[2][1] = "\u2654"
         arr
      end
 
@@ -134,10 +134,22 @@ game.play
 
 
 =begin
+
+    9/17
+    all moves complete except castleing
+    need to add is_king_in_check validation to prevent moving king into check..
+    add if king is taken in register_move then game is over
+    save board
+    load board
+
+    
+
+
+
     9/16 follow up notes...
-    building out bishop move need to accomodate for all four directions it can travel in piece_in_path_diagonal
-    then build Queen
-    then build king
+    COMPLETE building out bishop move need to accomodate for all four directions it can travel in piece_in_path_diagonal
+    COMPLETE then build Queen
+    COMPLETE then build king
     then make move into check validation
 
 

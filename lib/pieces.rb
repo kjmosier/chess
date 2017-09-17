@@ -28,14 +28,32 @@ module ChessPieceMoves
             return knight_move(move_from, move_to)
         when 9815, 9821
            return bishop_move(move_from, move_to)
-        when 9813
-            puts 'moving a white queen'
-        when 9812
-            puts 'moving a white king'
+        when 9813, 9819
+            return queen_move(move_from, move_to)
+        when 9812, 9818
+            return king_move(move_from, move_to)
         else
-            puts 'pieces move not added yet'
+            puts 'Error in validate_move_to'
         end
+    end
 
+    def king_move(move_from, move_to)
+      #invalid if king moves more than one space in any direction
+      if (move_from[0] - move_to[0]).abs > 1 || (move_from[1] - move_to[1]).abs > 1
+        return false
+      end
+      true
+    end
+
+    def queen_move(move_from, move_to)
+      #if a diagonal move then test it
+      if (move_from[0] - move_to[0]).abs == (move_from[1] - move_to[1]).abs
+        return !piece_in_path_diagonal?(move_from, move_to)
+      end
+      #if not linear or diagonal(see previous block) return false
+      return false if move_to[0] != move_from[0] && move_to[1] != move_from[1]
+      #if there is a NOT piece in the path return true
+      !piece_in_path_straight?(move_from, move_to)
     end
 
     def bishop_move(move_from, move_to)
@@ -112,49 +130,39 @@ module ChessPieceMoves
     end
 
     def is_take?(move_from, move_to)
-        puts 'checking is take?'
         return is_black?(move_to) if is_white?(move_from)
         return is_white?(move_to) if is_black?(move_from)
-        false
     end
+
 
     def piece_in_path_diagonal?(move_from, move_to)
       #sticking to matrix format where row axis is first element
-      row = move_from[0].dup + 1
-      col = move_from[1].dup + 1
-      until row == move_to[0] - 1
-        puts 'cell in path:'
-        p @board[row][col]
+      move_to[0] > move_from[0] ? increment_row = 1 : increment_row = -1
+      move_to[1] > move_from[1] ? increment_col = 1 : increment_col = -1
+      row = move_from[0].dup + increment_row
+      col = move_from[1].dup + increment_col
+      until row == move_to[0]
         return true if @board[row][col] != '.'
-        row += 1
-        col += 1
+        row += increment_row
+        col += increment_col
       end
       false
     end
 
 
     def piece_in_path_straight?(move_from, move_to)
-        puts "move_from: #{move_from}    move_to: #{move_to}"
         if move_from[1] == move_to[1]
           col= move_from[1]
-          # spot after or before piece
+          # marks spot after or before piece
           start = move_from[0] < move_to[0] ? move_from[0] + 1 : move_to[0] + 1
           stop = move_from[0] < move_to[0] ? move_to[0] - 1 : move_from[0] - 1
-          start.upto(stop) do |l|
-             puts 'cell in path:'
-             p @board[l][col]
-            return true if @board[l][col] != '.'
-          end
+          start.upto(stop) {|l| return true if @board[l][col] != '.'}
          else
            row = move_from[0]
-           # spot after or before piece
+           # marks spot after or before piece
            start = move_from[1] < move_to[1] ? move_from[1] + 1 : move_to[1] + 1
            stop = move_from[1] < move_to[1] ? move_to[1] - 1 : move_from[1] - 1
-           start.upto(stop) do |l|
-              puts 'cell in path:'
-              p @board[row][l]
-              return true if @board[row][l] != '.'
-            end
+           start.upto(stop) { |l| return true if @board[row][l] != '.'}
          end
          false
     end
@@ -187,11 +195,12 @@ module ChessPieceMoves
         move_from
     end
 
+
+
     def get_move
         choice = 'XXX'
         scanned = choice.scan(/[a-h][1-8]/).join
         until choice.size == 2 && scanned.size == 2
-            # puts "To enter space type column then row. e.g. \"a1\""
             choice = gets.chomp
             # kill switch for testing
             exit(0) if choice == 'q'

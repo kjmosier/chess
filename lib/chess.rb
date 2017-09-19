@@ -32,12 +32,16 @@ module Chess
         @board = set_board
         #track whose turn: white or !white (black)
         @white = true
+        #for use on Web-site to dipslay captured units
         @captured_white = []
         @captured_black = []
         #is game still active?
         @game = true
-        @black_can_castle_left = true
-        @white_can_castle_right = true
+        #castling
+        @black_qr_can_castle = true
+        @black_kr_can_castle = true
+        @white_qr_can_castle = true
+        @white_kr_can_castle = true
      end
 
 
@@ -84,26 +88,34 @@ module Chess
 
      def register_move(move_from, move_to)
        puts "completing move"
-       if is_white?(move_to) || is_black?(move_to)
-         is_black?(move_to) ? @captured_white << piece_at(move_to) : @captured_black << piece_at(move_to)
+       #first case is for castling, everything else gets captured and replaced
+       if (is_white?(move_from) && is_white?(move_to)) || (is_black?(move_from) && is_black?(move_to))
+         temp = piece_at(move_to).dup
+         @board[move_to[0]][move_to[1]] = piece_at(move_from)
+         @board[move_from[0]][move_from[1]] = temp
+       else
+         if is_white?(move_to) || is_black?(move_to)
+           is_black?(move_to) ? @captured_white << piece_at(move_to) : @captured_black << piece_at(move_to)
+         end
+         @board[move_to[0]][move_to[1]] = piece_at(move_from)
+         @board[move_from[0]][move_from[1]] = "."
        end
-       @board[move_to[0]][move_to[1]] = piece_at(move_from)
-       @board[move_from[0]][move_from[1]] = "."
      end
 
 
       #Sets the board as an array of 8 rows with 8 columns
       def set_board
         arr = []
-        arr << ["\u2656","\u2658","\u2657","\u2654","\u2655","\u2657","\u2658","\u2656"]
+        arr << ["\u2656","\u2658","\u2657","\u2655","\u2659","\u2657","\u2658","\u2656"]
         arr << ("\u2659 "* 8).split()
         4.times do
             arr << (". " * 8).split()
         end
         arr << ("\u265f "* 8).split()
-        arr << ["\u265c","\u265e","\u265d","\u265b","\u265a","\u265d","\u265e","\u265c"]
-        #test case
-        arr[2][1] = "\u2654"
+        arr << ["\u265c","\u265e","\u265d","\u265b","\u265f","\u265d","\u265e","\u265c"]
+        #test cases
+        arr[4][1] = "\u2654"
+        arr[3][5] = "\u265a"
         arr
      end
 
@@ -134,42 +146,37 @@ game.play
 
 
 =begin
+   9/18 end of day notes
+   need to add save and load functionality
+   need to build out resign method.
+
+
+
+   9/18 move into check... problem with pawns only registering hit if king is in front of them not  beside them
+   add if king is taken in register_move then game is over
+   save board
+   load board
+
+
 
     9/17
-    all moves complete except castleing
-    need to add is_king_in_check validation to prevent moving king into check..
-    add if king is taken in register_move then game is over
-    save board
-    load board
-
-    
-
-
+    COMPLETE  castleing
+    COMPLETE need to add is_king_in_check validation to prevent moving king into check..
 
     9/16 follow up notes...
     COMPLETE building out bishop move need to accomodate for all four directions it can travel in piece_in_path_diagonal
     COMPLETE then build Queen
     COMPLETE then build king
-    then make move into check validation
 
 
     9/15 follow up notes...   Pawn moves are completely built out.  next will be rook.u
+    COMPLETE Build out piece moves... one by one  5 more total.
 
-    Things to do.   if take is the king game == over  change in register_move
-    Build out piece moves... one by one  5 more total.
-
-    tricky add-ons:
-        castling
-        determine if move will put you in check... invalid.
-            will build this out by running through each of opponents pieces and see if they can land on king
-
-    save board
-    load board
     that's it unless I want to build ai but would rather just start in on my web project...
 
 
 
-
+orig outline...
 
    1. moves
       a. prompt move  done

@@ -37,7 +37,6 @@ module ChessPieceMoves
 
     #returns true if active player is in check given current @board set-up
     def in_check?
-      puts "breaking in_check? ?"
       #whose turn?
       @white ? color = "white" : color = "black"
       #where's king

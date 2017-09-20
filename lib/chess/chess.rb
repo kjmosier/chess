@@ -50,24 +50,10 @@ module Chess
        until !@game
          display_board
          puts "#{whose_turn} turn."
-         #disabled for testing
-         #prompt
          move
        end
      end
 
-
-
-     def prompt
-       puts "Please select option: \n m: move \n s: save \n q: quit"
-       choice = gets.chomp
-       case choice
-       when "m"
-         move
-       else
-         @game = false
-       end
-     end
 
 
 
@@ -139,8 +125,7 @@ module Chess
   end
 end
 
-game = Chess::ChessGame.new()
-game.play
+
 
 
 

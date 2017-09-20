@@ -20,13 +20,18 @@ module ChessPieceMoves
             return can_castle?(move_from, move_to)
         end
         return false if !piece_can_move_there?(move_from, move_to)
+        true
         #cannot move into check
-        temp_board = @board.dup
+        #here is a wonky work around to not rewrite a bunch of code to check for check
+        #switches @board to reflect what it would look like then checks for check
+        #finally returns board to original state before sending it to register move
+        temp_piece = piece_at(move_to).dup
         @board[move_to[0]][move_to[1]] = piece_at(move_from)
         @board[move_from[0]][move_from[1]] = "."
         valid = !in_check?
-        @board = temp_board
-        valid
+        @board[move_from[0]][move_from[1]] = piece_at(move_to)
+        @board[move_to[0]][move_to[1]] = temp_piece
+        return valid
     end
 
 
@@ -47,6 +52,7 @@ module ChessPieceMoves
            end
         end
       end
+      false
     end
 
 

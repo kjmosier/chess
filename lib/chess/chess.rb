@@ -139,8 +139,7 @@ module Chess
   end
 end
 
-game = Chess::ChessGame.new()
-game.play
+
 
 
 
